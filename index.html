@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cubo 3D con Imágenes</title>
+  <title>Cubo 3D - Demo GitHub Pages</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -13,9 +13,10 @@
       left: 20px;
       z-index: 10;
       padding: 10px 15px;
-      background-color: white;
+      background: white;
       border: 1px solid black;
       cursor: pointer;
+      font-family: sans-serif;
     }
   </style>
 </head>
@@ -28,14 +29,15 @@
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({antialias: true});
+    const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-    // Texturas famosas
-    const textures = [
+    const textureURLs = [
       'https://uploads5.wikiart.org/images/vincent-van-gogh/starry-night.jpg',
       'https://uploads8.wikiart.org/images/leonardo-da-vinci/mona-lisa.jpg',
       'https://uploads4.wikiart.org/images/edvard-munch/the-scream.jpg',
@@ -44,33 +46,31 @@
       'https://uploads0.wikiart.org/images/johannes-vermeer/girl-with-a-pearl-earring.jpg'
     ];
 
-    const materials = textures.map(url => {
-      const texture = new THREE.TextureLoader().load(url);
-      return new THREE.MeshBasicMaterial({ map: texture });
-    });
+    const materials = textureURLs.map(url => new THREE.MeshBasicMaterial({
+      map: new THREE.TextureLoader().load(url)
+    }));
 
-    // Creamos 8 cubos pequeños con materiales (mismo material para todas caras)
     const cubeSize = 1;
     const smallCubes = [];
     const positions = [
       [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
-      [-0.5, 0.5, -0.5], [0.5, 0.5, -0.5],
-      [-0.5, -0.5, 0.5], [0.5, -0.5, 0.5],
-      [-0.5, 0.5, 0.5], [0.5, 0.5, 0.5],
+      [-0.5,  0.5, -0.5], [0.5,  0.5, -0.5],
+      [-0.5, -0.5,  0.5], [0.5, -0.5,  0.5],
+      [-0.5,  0.5,  0.5], [0.5,  0.5,  0.5],
     ];
 
+    // Crear cubos pequeños con materiales diferentes:
     positions.forEach((pos, i) => {
       const geo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-      // Para simplificar, todas las caras con el mismo material ciclando entre los 6
-      const mesh = new THREE.Mesh(geo, materials[i % materials.length]);
+      const mat = materials[i % materials.length];
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.position.set(...pos);
       smallCubes.push(mesh);
-      scene.add(mesh);
     });
 
-    // Grupo cubo grande
+    // Grupo cubo grande:
     const bigCube = new THREE.Group();
-    smallCubes.forEach(c => bigCube.add(c));
+    smallCubes.forEach(cube => bigCube.add(cube));
     scene.add(bigCube);
 
     camera.position.z = 5;
@@ -80,9 +80,9 @@
     document.getElementById('toggleBtn').addEventListener('click', () => {
       expanded = !expanded;
       if (expanded) {
-        // Expandir a pared 4x2
-        smallCubes.forEach((c, i) => {
-          c.position.set((i % 4) - 1.5, -Math.floor(i / 4) + 0.5, 0);
+        // Abrir en pared 4x2
+        smallCubes.forEach((cube, i) => {
+          cube.position.set((i % 4) - 1.5, -Math.floor(i / 4) + 0.5, 0);
         });
       } else {
         // Volver a cubo 2x2x2
@@ -93,19 +93,16 @@
     });
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
     function animate() {
       requestAnimationFrame(animate);
-
-      smallCubes.forEach(cube => {
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
-      });
-
+      controls.update();
+      bigCube.rotation.x += 0.005;
+      bigCube.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
 
