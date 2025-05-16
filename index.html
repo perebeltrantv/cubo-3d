@@ -1,113 +1,69 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cubo 3D - Demo GitHub Pages</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cubo 3D</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
-    #toggleBtn {
+    #toggleButton {
       position: absolute;
       top: 20px;
       left: 20px;
-      z-index: 10;
-      padding: 10px 15px;
-      background: white;
-      border: 1px solid black;
+      z-index: 1;
+      padding: 10px 20px;
+      background: #222;
+      color: white;
+      border: none;
       cursor: pointer;
-      font-family: sans-serif;
     }
   </style>
+  <!-- CARGA DE SCRIPTS COMPATIBLES CON GITHUB PAGES -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
-  <button id="toggleBtn">Abrir/Cerrar</button>
-
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
-
+  <button id="toggleButton">Abrir / Cerrar</button>
+  <script>
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    const textureURLs = [
-      'https://uploads5.wikiart.org/images/vincent-van-gogh/starry-night.jpg',
-      'https://uploads8.wikiart.org/images/leonardo-da-vinci/mona-lisa.jpg',
-      'https://uploads4.wikiart.org/images/edvard-munch/the-scream.jpg',
-      'https://uploads7.wikiart.org/images/pablo-picasso/guernica.jpg',
-      'https://uploads0.wikiart.org/images/claude-monet/water-lilies.jpg',
-      'https://uploads0.wikiart.org/images/johannes-vermeer/girl-with-a-pearl-earring.jpg'
-    ];
-
-    const materials = textureURLs.map(url => new THREE.MeshBasicMaterial({
-      map: new THREE.TextureLoader().load(url)
-    }));
-
-    const cubeSize = 1;
-    const smallCubes = [];
-    const positions = [
-      [-0.5, -0.5, -0.5], [0.5, -0.5, -0.5],
-      [-0.5,  0.5, -0.5], [0.5,  0.5, -0.5],
-      [-0.5, -0.5,  0.5], [0.5, -0.5,  0.5],
-      [-0.5,  0.5,  0.5], [0.5,  0.5,  0.5],
-    ];
-
-    // Crear cubos pequeños con materiales diferentes:
-    positions.forEach((pos, i) => {
-      const geo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-      const mat = materials[i % materials.length];
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(...pos);
-      smallCubes.push(mesh);
-    });
-
-    // Grupo cubo grande:
-    const bigCube = new THREE.Group();
-    smallCubes.forEach(cube => bigCube.add(cube));
-    scene.add(bigCube);
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshNormalMaterial({wireframe: false});
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
 
     camera.position.z = 5;
-
-    let expanded = false;
-
-    document.getElementById('toggleBtn').addEventListener('click', () => {
-      expanded = !expanded;
-      if (expanded) {
-        // Abrir en pared 4x2
-        smallCubes.forEach((cube, i) => {
-          cube.position.set((i % 4) - 1.5, -Math.floor(i / 4) + 0.5, 0);
-        });
-      } else {
-        // Volver a cubo 2x2x2
-        positions.forEach((pos, i) => {
-          smallCubes[i].position.set(...pos);
-        });
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 
     function animate() {
       requestAnimationFrame(animate);
       controls.update();
-      bigCube.rotation.x += 0.005;
-      bigCube.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
-
     animate();
+
+    const button = document.getElementById("toggleButton");
+    let open = false;
+    button.addEventListener("click", () => {
+      open = !open;
+      cube.rotation.x += open ? Math.PI / 2 : -Math.PI / 2;
+    });
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
+
 
